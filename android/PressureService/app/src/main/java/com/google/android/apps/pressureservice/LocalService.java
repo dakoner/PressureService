@@ -33,8 +33,12 @@ import java.util.TimerTask;
  */
 
 public class LocalService extends Service {
-    private NotificationManager mNM;
-    private PressureSensorEventListener mPsel;
+    final private NotificationManager mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    final Context ctx = this.getApplicationContext();
+    final Intent intent = new Intent(this, LocalService.class);
+    final PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
+    final Calendar cal = Calendar.getInstance();
+    final private PressureSensorEventListener mPsel = new PressureSensorEventListener(ctx);
     final private Timer mTimer = new Timer();
 
 
@@ -45,29 +49,17 @@ public class LocalService extends Service {
 
     @Override
     public void onCreate() {
-        mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
-        Context ctx = this.getApplicationContext();
-
-        mPsel = new PressureSensorEventListener(ctx);
-        final Intent intent = new Intent(this, LocalService.class);
-        final PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
-        final Calendar cal = Calendar.getInstance();
-
         mAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mAlarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis()+ 20 * 1000, pintent);
-
 
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 float reading = mPsel.getSensorReading();
-                // Tell the user we stopped.
-                //Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
                 mTimer.cancel();
-                //mAlarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis()+ 20 * 1000, pintent);
+                mAlarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis()+ 20 * 1000, pintent);
                 stopSelf();
             }
         }, 5 * 1000);
@@ -85,8 +77,6 @@ public class LocalService extends Service {
         // Cancel the persistent notification.
 
         mNM.cancel(NOTIFICATION);
-        mNM = null;
-
     }
 
     @Override
