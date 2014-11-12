@@ -7,21 +7,14 @@
         <service android:name=".LocalService" android:stopWithTask="true" />
 
         <activity android:name=".LocalServiceActivities$Controller"
-            android:label="@string/activity_local_service_controller"
-            android:launchMode="singleTop">
+            android:label="@string/activity_local_service_controller">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".LocalServiceActivities$Binding"
-            android:label="@string/activity_local_service_binding">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
     </application>
 

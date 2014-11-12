@@ -4,7 +4,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -15,9 +18,7 @@ import android.widget.Toast;
 
 /**
  * This is an example of implementing an application service that runs locally
- * in the same process as the application.  The {@link LocalServiceActivities.Controller}
- * and {@link LocalServiceActivities.Binding} classes show how to interact with the
- * service.
+ * in the same process as the application.
  *
  * <p>Notice the use of the {@link NotificationManager} when interesting things
  * happen in the service.  This is generally how background services should
@@ -32,17 +33,6 @@ public class LocalService extends Service {
     // We use it on Notification start, and to cancel it.
     private int NOTIFICATION = R.string.local_service_started;
 
-    /**
-     * Class for clients to access.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with
-     * IPC.
-     */
-    public class LocalBinder extends Binder {
-        LocalService getService() {
-            return LocalService.this;
-        }
-    }
-    
     @Override
     public void onCreate() {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
@@ -73,6 +63,17 @@ public class LocalService extends Service {
         return mBinder;
     }
 
+    /**
+     * Class for clients to access.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with
+     * IPC.
+     */
+    public class LocalBinder extends Binder {
+        LocalService getService() {
+            return LocalService.this;
+        }
+    }
+
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
@@ -84,17 +85,15 @@ public class LocalService extends Service {
         // In this sample, we'll use the same text for the ticker and the expanded notification
         CharSequence text = getText(R.string.local_service_started);
 
-        // Set the icon, scrolling text and timestamp
-        Notification notification = new Notification(R.drawable.stat_sample, text,
-                System.currentTimeMillis());
+        Context ctx = this.getApplicationContext();
+        Resources res = ctx.getResources();
 
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, LocalServiceActivities.Controller.class), 0);
-
-        // Set the info for the views that show in the notification panel.
-        notification.setLatestEventInfo(this, getText(R.string.local_service_label),
-                       text, contentIntent);
+        Notification notification = new Notification.Builder(ctx)
+                .setSmallIcon(R.drawable.stat_sample)
+                .setLargeIcon(BitmapFactory.decodeResource(res, R.drawable.stat_sample))
+                .setContentTitle("Update on local service")
+                .setContentText(text)
+                .build();
 
         // Send the notification.
         mNM.notify(NOTIFICATION, notification);
