@@ -52,7 +52,10 @@ public class LocalService extends Service {
         final PressureSensorEventListener psel = new PressureSensorEventListener(ctx);
 
         // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification();
+        //showNotification();
+
+        new UploadAsyncTask().execute(this);
+/*
         mAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mAlarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis()+ 20 * 1000, pintent);
 
@@ -65,6 +68,7 @@ public class LocalService extends Service {
                 stopSelf();
             }
         }, 5 * 1000);
+*/
     }
 
     @Override
@@ -104,7 +108,7 @@ public class LocalService extends Service {
     /**
      * Show a notification while this service is running.
      */
-    private void showNotification() {
+    public void showNotification() {
         // In this sample, we'll use the same text for the ticker and the expanded notification
         CharSequence text = getText(R.string.local_service_started);
 
