@@ -33,12 +33,10 @@ import java.util.TimerTask;
  */
 
 public class LocalService extends Service {
-    final private NotificationManager mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-    final Context ctx = this.getApplicationContext();
-    final Intent intent = new Intent(this, LocalService.class);
-    final PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
-    final Calendar cal = Calendar.getInstance();
-    final private PressureSensorEventListener mPsel = new PressureSensorEventListener(ctx);
+    private NotificationManager mNM;
+    final  Calendar cal = Calendar.getInstance();
+
+
     final private Timer mTimer = new Timer();
 
 
@@ -49,6 +47,12 @@ public class LocalService extends Service {
 
     @Override
     public void onCreate() {
+        mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        final  Intent intent = new Intent(this, LocalService.class);
+        final  PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
+        Context ctx = this.getApplicationContext();
+        final PressureSensorEventListener psel = new PressureSensorEventListener(ctx);
+
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
         mAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -57,7 +61,7 @@ public class LocalService extends Service {
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                float reading = mPsel.getSensorReading();
+                float reading = psel.getSensorReading();
                 mTimer.cancel();
                 mAlarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis()+ 20 * 1000, pintent);
                 stopSelf();
