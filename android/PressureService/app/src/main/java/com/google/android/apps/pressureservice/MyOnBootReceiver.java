@@ -3,7 +3,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-public class MyScheduleReceiver extends BroadcastReceiver {
+public class MyOnBootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

@@ -35,8 +35,6 @@ import java.util.TimerTask;
 public class LocalService extends Service {
     private NotificationManager mNM;
     final  Calendar cal = Calendar.getInstance();
-
-
     final private Timer mTimer = new Timer();
 
 
