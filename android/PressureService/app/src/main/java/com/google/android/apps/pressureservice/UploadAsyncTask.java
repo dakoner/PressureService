@@ -1,6 +1,7 @@
 package com.google.android.apps.pressureservice;
 
 import android.app.NotificationManager;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -48,8 +49,11 @@ class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
     protected Long doInBackground(LocalService... ls) {
 
         mLS = ls[0];
-
-
+        Context ctx = mLS.getApplicationContext();
+        PressureSensorEventListener psel = new PressureSensorEventListener(ctx);
+        float reading = 0;
+        while (reading == 0)
+            reading = psel.getSensorReading();
 
         HttpClient httpClient = createHttpClient();
 
@@ -60,8 +64,8 @@ class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
         long response_code=-1;
         StringBuffer result;
         try {
-            params = new StringEntity("{\"pressure\":\"1500.0\",\"collected_at\":\"Thu, 13 Oct 2014 12:12:12 -0000\"}");
-
+            params = new StringEntity("{\"pressure\":" + reading + ",\"collected_at\":\"Thu, 13 Oct 2014 12:12:12 -0000\",\"us_units\":0}");
+            Log.i("UploadAsyncTask", "Request content: " + params.getContent().read());
             post.addHeader("content-type", "application/json");
             post.setEntity(params);
 
@@ -78,6 +82,7 @@ class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
                 while ((line = rd.readLine()) != null) {
                     result.append(line);
                 }
+                Log.i("UploadAsyncTask", "Error: " + response_code);
                 Log.i("UploadAsyncTask", "Error: " + result.toString());
             }
         }        catch (Exception ex) {
@@ -94,10 +99,8 @@ class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
 
     // the onPostexecute method receives the return type of doInBackGround()
     protected void onPostExecute(Long result) {
-        mLS.showNotification();
-        // do something with the result, for example display the received Data in a ListView
-        // in this case, "result" would contain the "someLong" variable returned by doInBackground();
-
-
+        mLS.showNotification(result);
+        mLS.reschedule();
+        mLS.stopSelf();
     }
 }

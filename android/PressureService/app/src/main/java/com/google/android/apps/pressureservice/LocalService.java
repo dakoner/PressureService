@@ -35,40 +35,23 @@ import java.util.TimerTask;
 public class LocalService extends Service {
     private NotificationManager mNM;
     final  Calendar cal = Calendar.getInstance();
-    final private Timer mTimer = new Timer();
-
+    private Intent intent;
+    private PendingIntent pintent;
+    private Context mCtx;
 
     // Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private int NOTIFICATION = R.string.local_service_started;
-    AlarmManager mAlarm;
+    private AlarmManager mAlarm;
 
     @Override
     public void onCreate() {
         mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        final  Intent intent = new Intent(this, LocalService.class);
-        final  PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
-        Context ctx = this.getApplicationContext();
-        final PressureSensorEventListener psel = new PressureSensorEventListener(ctx);
-
-        // Display a notification about us starting.  We put an icon in the status bar.
-        //showNotification();
-
+        intent = new Intent(this, LocalService.class);
+        pintent = PendingIntent.getService(this, 0, intent, 0);
+        mCtx = this.getApplicationContext();
+        showNotification();
         new UploadAsyncTask().execute(this);
-/*
-        mAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        mAlarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis()+ 20 * 1000, pintent);
-
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                float reading = psel.getSensorReading();
-                mTimer.cancel();
-                mAlarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis()+ 20 * 1000, pintent);
-                stopSelf();
-            }
-        }, 5 * 1000);
-*/
     }
 
     @Override
@@ -82,7 +65,7 @@ public class LocalService extends Service {
     public void onDestroy() {
         // Cancel the persistent notification.
 
-        //mNM.cancel(NOTIFICATION);
+        mNM.cancel(NOTIFICATION);
     }
 
     @Override
@@ -105,24 +88,44 @@ public class LocalService extends Service {
 // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
-    /**
-     * Show a notification while this service is running.
-     */
     public void showNotification() {
         // In this sample, we'll use the same text for the ticker and the expanded notification
-        CharSequence text = getText(R.string.local_service_started);
+        CharSequence text = "Starting operation";
 
-        Context ctx = this.getApplicationContext();
-        Resources res = ctx.getResources();
+        Resources res = mCtx.getResources();
 
-        Notification notification = new Notification.Builder(ctx)
+        Notification notification = new Notification.Builder(mCtx)
                 .setSmallIcon(R.drawable.stat_sample)
                 .setLargeIcon(BitmapFactory.decodeResource(res, R.drawable.stat_sample))
-                .setContentTitle("Update on local service")
+                .setContentTitle("An update on local service")
                 .setContentText(text)
                 .build();
 
         // Send the notification.
         mNM.notify(NOTIFICATION, notification);
+    }
+    /**
+     * Show a notification while this service is running.
+     */
+    public void showNotification(long result) {
+        // In this sample, we'll use the same text for the ticker and the expanded notification
+        CharSequence text = "Result: " + result;
+
+        Resources res = mCtx.getResources();
+
+        Notification notification = new Notification.Builder(mCtx)
+                .setSmallIcon(R.drawable.stat_sample)
+                .setLargeIcon(BitmapFactory.decodeResource(res, R.drawable.stat_sample))
+                .setContentTitle("An update on local service")
+                .setContentText(text)
+                .build();
+
+        // Send the notification.
+        mNM.notify(NOTIFICATION, notification);
+    }
+
+    public void reschedule() {
+        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis() + 20 * 1000, pintent);
     }
 }
