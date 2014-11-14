@@ -11,11 +11,11 @@ import android.os.Bundle;
 public class PressureSensorEventListener implements SensorEventListener {
     private SensorManager mSensorManager;
     private Sensor mPressure;
-    private float mPressureReading;
+    private LocalServiceActivities.Controller mC;
 
-    PressureSensorEventListener(Context context) {
-
-        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+    PressureSensorEventListener(LocalServiceActivities.Controller c) {
+        mC = c;
+        mSensorManager = (SensorManager) mC.getApplicationContext().getSystemService(Context.SENSOR_SERVICE);
         mPressure = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         mSensorManager.registerListener(this,
                 mPressure,
@@ -29,11 +29,8 @@ public class PressureSensorEventListener implements SensorEventListener {
 
     @Override
     public final void onSensorChanged(SensorEvent event) {
-        mPressureReading = event.values[0];
+        mC.UpdatePressure(event.values[0]);
     }
 
-    public final float getSensorReading() {
-        return mPressureReading;
-    }
 
 }

@@ -5,7 +5,9 @@
     <application android:allowBackup="true" android:label="@string/app_name"
         android:icon="@drawable/ic_launcher" android:theme="@style/AppTheme">
 
-        <service android:name=".LocalService" android:stopWithTask="true" />
+        <service
+            android:name=".UploadIntentService"
+            android:exported="false"/>
 
         <activity android:name=".LocalServiceActivities$Controller"
             android:label="@string/activity_local_service_controller">
@@ -16,11 +18,7 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name="MyOnBootReceiver" >
-        <intent-filter>
-            <action android:name="android.intent.action.BOOT_COMPLETED" />
-        </intent-filter>
-        </receiver>
+
     </application>
 
 </manifest>

@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class LocalServiceActivities {
@@ -24,39 +25,30 @@ public class LocalServiceActivities {
      * all together; typically this code would appear in some separate class.
      */
     public static class Controller extends Activity {
+        // TODO(dek): use Calendar to measure 5-minute intervals to upload
+        private boolean mDone = false;
+        private PressureSensorEventListener mPSEL;
+
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
             setContentView(R.layout.local_service_controller);
 
-            // Watch for button clicks.
-            Button button = (Button)findViewById(R.id.start);
-            button.setOnClickListener(mStartListener);
-            button = (Button)findViewById(R.id.stop);
-            button.setOnClickListener(mStopListener);
+            mPSEL = new PressureSensorEventListener(this);
         }
 
-        private OnClickListener mStartListener = new OnClickListener() {
-            public void onClick(View v) {
-                // Make sure the service is started.  It will continue running
-                // until someone calls stopService().  The Intent we use to find
-                // the service explicitly specifies our service component, because
-                // we want it running in our own process and don't want other
-                // applications to replace it.
-                startService(new Intent(Controller.this,
-                        LocalService.class));
+        public void UpdatePressure(float pressure) {
+            TextView view = (TextView)findViewById(R.id.pressure);
+            String pressureString = Float.toString(pressure);
+            view.setText(pressureString);
+            if (!mDone) {
+                //Start MyIntentService
+                Intent intent = new Intent(this, UploadIntentService.class);
+                intent.putExtra(UploadIntentService.EXTRA_KEY_IN, pressureString);
+                startService(intent);
+                mDone = true;
             }
-        };
-
-        private OnClickListener mStopListener = new OnClickListener() {
-            public void onClick(View v) {
-                // Cancel a previous call to startService().  Note that the
-                // service will not actually stop at this point if there are
-                // still bound clients.
-                stopService(new Intent(Controller.this,
-                        LocalService.class));
-            }
-        };
+        }
     }
 }

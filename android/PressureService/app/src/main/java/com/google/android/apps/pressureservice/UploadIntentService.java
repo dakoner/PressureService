@@ -1,13 +1,12 @@
 package com.google.android.apps.pressureservice;
 
-import android.app.NotificationManager;
+import android.app.IntentService;
 import android.content.Context;
-import android.os.AsyncTask;
+import android.content.Intent;
 import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
@@ -25,12 +24,13 @@ import org.apache.http.protocol.HTTP;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 
-class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
-    LocalService mLS;
+public class UploadIntentService extends IntentService {
+    public static final String EXTRA_KEY_IN = "EXTRA_IN";
 
+    public UploadIntentService() {
+        super("com.google.android.apps.pressureservice.UploadIntentService");
+    }
     private HttpClient createHttpClient() {
         HttpParams params = new BasicHttpParams();
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
@@ -38,22 +38,15 @@ class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
         HttpProtocolParams.setUseExpectContinue(params, true);
 
         SchemeRegistry schReg = new SchemeRegistry();
-        schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         schReg.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
         ClientConnectionManager conMgr = new ThreadSafeClientConnManager(params, schReg);
 
         return new DefaultHttpClient(conMgr, params);
     }
 
-    // these Strings / or String are / is the parameters of the task, that can be handed over via the excecute(params) method of AsyncTask
-    protected Long doInBackground(LocalService... ls) {
-
-        mLS = ls[0];
-        Context ctx = mLS.getApplicationContext();
-        PressureSensorEventListener psel = new PressureSensorEventListener(ctx);
-        float reading = 0;
-        while (reading == 0)
-            reading = psel.getSensorReading();
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        float pressure = Float.parseFloat(intent.getStringExtra(EXTRA_KEY_IN));
 
         HttpClient httpClient = createHttpClient();
 
@@ -64,7 +57,7 @@ class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
         long response_code=-1;
         StringBuffer result;
         try {
-            params = new StringEntity("{\"pressure\":" + reading + ",\"collected_at\":\"Thu, 13 Oct 2014 12:12:12 -0000\",\"us_units\":0}");
+            params = new StringEntity("{\"pressure\":" + pressure + ",\"collected_at\":\"Thu, 13 Oct 2014 12:12:12 -0000\",\"us_units\":0}");
             Log.i("UploadAsyncTask", "Request content: " + params.getContent().read());
             post.addHeader("content-type", "application/json");
             post.setEntity(params);
@@ -92,15 +85,5 @@ class UploadAsyncTask extends AsyncTask<LocalService, Integer, Long> {
             httpClient.getConnectionManager().shutdown();
         }
 
-
-        return response_code;
-    }
-
-
-    // the onPostexecute method receives the return type of doInBackGround()
-    protected void onPostExecute(Long result) {
-        mLS.showNotification(result);
-        mLS.reschedule();
-        mLS.stopSelf();
     }
 }
