@@ -82,7 +82,7 @@ public class LocalService extends Service {
     public void onDestroy() {
         // Cancel the persistent notification.
 
-        mNM.cancel(NOTIFICATION);
+        //mNM.cancel(NOTIFICATION);
     }
 
     @Override
