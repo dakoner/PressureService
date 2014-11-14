@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Date;
+
 public class LocalServiceActivities {
     /**
      * <p>Example of explicitly starting and stopping the local service.
@@ -28,12 +30,14 @@ public class LocalServiceActivities {
         // TODO(dek): use Calendar to measure 5-minute intervals to upload
         private boolean mDone = false;
         private PressureSensorEventListener mPSEL;
-
+        private Date mDate;
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
             setContentView(R.layout.local_service_controller);
+
+            mDate = new Date();
 
             mPSEL = new PressureSensorEventListener(this);
         }
@@ -42,12 +46,14 @@ public class LocalServiceActivities {
             TextView view = (TextView)findViewById(R.id.pressure);
             String pressureString = Float.toString(pressure);
             view.setText(pressureString);
-            if (!mDone) {
+            Date date = new Date();
+            // compare to mDate, if x time has elapsed, then update.
+            if ( date.getTime() - mDate.getTime() > 20 * 1000) {
                 //Start MyIntentService
                 Intent intent = new Intent(this, UploadIntentService.class);
                 intent.putExtra(UploadIntentService.EXTRA_KEY_IN, pressureString);
                 startService(intent);
-                mDone = true;
+                mDate = date;
             }
         }
     }

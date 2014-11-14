@@ -23,7 +23,10 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class UploadIntentService extends IntentService {
     public static final String EXTRA_KEY_IN = "EXTRA_IN";
@@ -56,9 +59,21 @@ public class UploadIntentService extends IntentService {
         HttpResponse response;
         long response_code=-1;
         StringBuffer result;
+
         try {
-            params = new StringEntity("{\"pressure\":" + pressure + ",\"collected_at\":\"Thu, 13 Oct 2014 12:12:12 -0000\",\"us_units\":0}");
-            Log.i("UploadAsyncTask", "Request content: " + params.getContent().read());
+            SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+
+            params = new StringEntity("{\"pressure\":" + pressure + ",\"collected_at\":\"" + sdf.format(new Date()) + "\",\"us_units\":0}");
+            BufferedReader in = new BufferedReader(new InputStreamReader(params.getContent()));
+            String aux;
+            StringBuilder builder = new StringBuilder();
+            while ((aux = in.readLine()) != null) {
+                builder.append(aux);
+            }
+
+
+            Log.i("UploadAsyncTask", "Request content: " + builder.toString());
+
             post.addHeader("content-type", "application/json");
             post.setEntity(params);
 
